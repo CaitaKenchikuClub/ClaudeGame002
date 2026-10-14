@@ -1,0 +1,23 @@
+{
+  "id": "default",
+  "name": "きゅうりの女神さま",
+  "credit": "元絵: assets/source/original_artwork.webp から背景除去",
+  "size": [387, 450],
+  "pivot": [0.5, 0.6],
+  "frames": {
+    "base": "base.webp",
+    "blink": "blink.webp"
+  },
+  "masters": {
+    "base": "base.png",
+    "blink": "blink.png"
+  },
+  "motion": {
+    "bobPx": 6,
+    "bobSec": 3.4,
+    "tiltDeg": 1.2,
+    "tiltSec": 5.6,
+    "breathe": 0.012,
+    "breatheSec": 2.8
+  }
+}

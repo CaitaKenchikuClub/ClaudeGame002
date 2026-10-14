@@ -1,0 +1,25 @@
+{
+  "id": "test-recolor",
+  "name": "テスト用スキン（色ちがい）",
+  "credit": "検証用。default スキンの色相を変えただけの仮素材",
+  "size": [
+    387,
+    450
+  ],
+  "pivot": [
+    0.5,
+    0.6
+  ],
+  "frames": {
+    "base": "base.webp",
+    "blink": "blink.webp"
+  },
+  "motion": {
+    "bobPx": 8,
+    "bobSec": 3.4,
+    "tiltDeg": 1.8,
+    "tiltSec": 5.6,
+    "breathe": 0.012,
+    "breatheSec": 2.8
+  }
+}

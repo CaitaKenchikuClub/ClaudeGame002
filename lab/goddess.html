@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>女神さまアニメ検証</title>
+<meta name="description" content="女神さまの透過立ち絵と簡易アニメーション（上下動・傾き・まばたき・タップ反応）の検証ページ。ゲーム本体とセーブデータには影響しません。">
+<link rel="icon" href="../assets/goddess_face.webp">
+<link rel="stylesheet" href="../anim/goddess-anim.css">
+<style>
+  :root{--ink:#6b4a7a;--soft:#9a7aa8;--card:#fffaf2;--line:#f1c7e3;--pink:#e2559f}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Hiragino Maru Gothic ProN","M PLUS Rounded 1c",system-ui,sans-serif;color:var(--ink);background:#fbeef7}
+  header{padding:12px 16px 4px}
+  h1{font-size:18px;margin:0 0 2px}
+  header p{margin:0;font-size:12px;color:var(--soft)}
+  main{max-width:960px;margin:0 auto;padding:8px 16px 40px;display:grid;gap:12px;grid-template-columns:1fr}
+  @media (min-width:820px){main{grid-template-columns:1.1fr .9fr}}
+  .stage{position:relative;border-radius:18px;overflow:hidden;border:3px solid #fff;box-shadow:0 4px 14px rgba(160,100,180,.18);min-height:420px;display:flex;align-items:flex-end;justify-content:center;padding:24px 8px 8px}
+  .bg-checker{background:repeating-conic-gradient(#e9e3ee 0 25%,#fff 0 50%) 0 0/20px 20px}
+  .bg-dark{background:#2a1f3a}
+  .bg-pastel{background:linear-gradient(180deg,#cfe8ff,#ffe3f3 60%,#e8ffe0)}
+  .bg-game{background:url(../assets/world.webp) center/cover}
+  .bg-green{background:#00c800}
+  #host{position:relative;width:min(100%,var(--w,320px));aspect-ratio:387/450;cursor:pointer}
+  .compare{display:none;position:relative;width:min(45%,var(--w,320px));aspect-ratio:376/480}
+  .compare img{width:100%;height:100%;object-fit:contain}
+  .compare span,.host-label{position:absolute;top:-20px;left:0;right:0;text-align:center;font-size:11px;font-weight:700;color:var(--ink);text-shadow:0 0 3px #fff,0 0 3px #fff}
+  .stage.cmp .compare{display:block}
+  .stage.cmp #host{width:min(45%,var(--w,320px))}
+  .panel{background:var(--card);border-radius:18px;border:3px solid #fff;box-shadow:0 4px 14px rgba(160,100,180,.12);padding:12px 14px}
+  .panel h2{font-size:14px;margin:4px 0 8px}
+  .row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;align-items:center}
+  button,select{font:inherit;font-size:13px;font-weight:700;color:var(--ink);border:2px solid #ffc1e2;background:#fff;border-radius:999px;padding:7px 12px;cursor:pointer}
+  button.on{background:linear-gradient(180deg,#ffd6ec,#efdcff);border-color:#e9a3d0}
+  button.primary{background:linear-gradient(90deg,#ff8fc8,#c49bff);color:#fff;border-color:transparent}
+  label{font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px}
+  input[type=range]{accent-color:#ff8fc8;width:160px}
+  .state{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:13px}
+  .state b{color:var(--pink)}
+  .note{font-size:12px;line-height:1.7;color:var(--soft);margin:8px 0 0}
+  #log{font-size:11px;line-height:1.6;max-height:120px;overflow:auto;background:#fff;border-radius:10px;padding:6px 8px;border:1.5px solid var(--line);margin:0}
+  .tapfx{position:absolute;pointer-events:none;font-size:20px;transform:translate(-50%,-50%);animation:tapfx .8s ease-out forwards}
+  @keyframes tapfx{from{opacity:1;transform:translate(-50%,-50%) scale(.6)}to{opacity:0;transform:translate(-50%,-160%) scale(1.2)}}
+</style>
+</head>
+<body>
+<header>
+  <h1>女神さま 待機アニメーション検証</h1>
+  <p>ゲーム本体とは独立した確認用ページです。セーブデータは読み書きしません。</p>
+</header>
+<main>
+  <section id="stage" class="stage bg-checker">
+    <div class="compare"><span>元の画像（背景つき）</span><img src="../assets/goddess.webp" alt="元の切り抜き"></div>
+    <div id="host"><span class="host-label" id="host-label" hidden>新しい透過画像</span></div>
+  </section>
+
+  <section class="panel">
+    <h2>アニメーション</h2>
+    <div class="row">
+      <button id="btn-toggle" class="primary">■ 停止</button>
+      <button id="btn-blink">まばたき</button>
+      <button id="btn-blink2">2回まばたき</button>
+      <button id="btn-react">タップ反応</button>
+    </div>
+    <h2>スキン</h2>
+    <div class="row">
+      <select id="sel-skin">
+        <option value="../assets/skins/default/skin.json">default（本番素材）</option>
+        <option value="skins/recolor/skin.json">テスト用（色ちがい）</option>
+      </select>
+    </div>
+    <h2>背景（切り抜きの確認用）</h2>
+    <div class="row" id="bgs">
+      <button data-bg="checker" class="on">チェック柄</button>
+      <button data-bg="dark">濃い色</button>
+      <button data-bg="green">緑</button>
+      <button data-bg="pastel">パステル</button>
+      <button data-bg="game">ゲーム背景</button>
+    </div>
+    <div class="row">
+      <label>大きさ <input type="range" id="size" min="140" max="460" value="320"></label>
+      <label><input type="checkbox" id="cmp"> 元画像と並べる</label>
+    </div>
+    <h2>状態</h2>
+    <div class="state">
+      <span>動作</span><b id="st-run"></b>
+      <span>タブ表示</span><b id="st-vis"></b>
+      <span>画面内</span><b id="st-on"></b>
+      <span>まばたき回数</span><b id="st-blink">0</b>
+      <span>タップ回数</span><b id="st-tap">0</b>
+    </div>
+    <p class="note">・別のタブに切り替える／画面外にスクロールすると、自動で一時停止します。<br>
+      ・キャラクターをタップすると反応します（ゲームでは「魔法をかける」につなげる予定）。<br>
+      ・端末の「視差効果を減らす」設定がオンだと、上下動と傾きは止まります。</p>
+    <h2>イベント</h2>
+    <pre id="log"></pre>
+  </section>
+</main>
+
+<script src="../anim/goddess-anim.js"></script>
+<script>
+(async () => {
+  const $ = s => document.querySelector(s);
+  const host = $('#host'), log = $('#log');
+  const write = msg => { log.textContent = new Date().toLocaleTimeString() + ' ' + msg + '\n' + log.textContent; };
+  const showState = s => {
+    $('#st-run').textContent = s.running ? '動かす' : '停止';
+    $('#st-vis').textContent = s.pageVisible ? '表示中' : '非表示（休止）';
+    $('#st-on').textContent = s.onScreen ? 'はい' : 'いいえ（休止）';
+    $('#btn-toggle').textContent = s.running ? '■ 停止' : '▶ 再開';
+  };
+
+  let ga;
+  try {
+    const skin = await GoddessAnim.loadSkin($('#sel-skin').value);
+    ga = new GoddessAnim.Animator(host, { skin, onState: s => { showState(s); write('状態: ' + (s.active ? '動作中' : '休止中')); } });
+    await ga.ready;
+    write('スキン読み込み: ' + skin.name);
+  } catch (e) {
+    write('エラー: ' + e.message + '（file:// ではなく http サーバー経由で開いてください）');
+    return;
+  }
+
+  setInterval(() => { $('#st-blink').textContent = ga.stats.blinks; $('#st-tap').textContent = ga.stats.taps; }, 300);
+
+  host.addEventListener('goddess:tap', e => {
+    const r = host.getBoundingClientRect();
+    const fx = document.createElement('div');
+    fx.className = 'tapfx'; fx.textContent = '✨';
+    fx.style.left = (e.detail.x - r.left) + 'px'; fx.style.top = (e.detail.y - r.top) + 'px';
+    host.appendChild(fx); fx.addEventListener('animationend', () => fx.remove());
+    write('goddess:tap');
+  });
+
+  $('#btn-toggle').onclick = () => ga.toggle();
+  $('#btn-blink').onclick = () => ga.blink(1);
+  $('#btn-blink2').onclick = () => ga.blink(2);
+  $('#btn-react').onclick = () => ga.react();
+  $('#sel-skin').onchange = async e => {
+    try { await ga.setSkin(await GoddessAnim.loadSkin(e.target.value)); write('スキン切替: ' + ga.skin.name); }
+    catch (err) { write('エラー: ' + err.message); }
+  };
+  document.querySelectorAll('#bgs button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#bgs button').forEach(x => x.classList.toggle('on', x === b));
+    $('#stage').className = 'stage bg-' + b.dataset.bg + ($('#cmp').checked ? ' cmp' : '');
+  });
+  $('#size').oninput = e => $('#stage').style.setProperty('--w', e.target.value + 'px');
+  $('#cmp').onchange = e => { $('#stage').classList.toggle('cmp', e.target.checked); $('#host-label').hidden = !e.target.checked; };
+})();
+</script>
+</body>
+</html>

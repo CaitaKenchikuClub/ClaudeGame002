@@ -1,0 +1,49 @@
+/* GoddessAnim — 一枚絵キャラクター用の軽量待機アニメーション
+   transform / opacity だけを動かすので、スマホでもGPU合成で軽く動きます。
+   画像の内容は知りません（スキンは skin.json で差し替え）。 */
+
+.ga-root{
+  position:relative;width:100%;height:100%;
+  --ga-bob-px:6px; --ga-bob-sec:3.4s;
+  --ga-tilt-deg:1.2deg; --ga-tilt-sec:5.6s;
+  --ga-breathe:1.012; --ga-breathe-sec:2.8s;
+  --ga-pivot-x:50%; --ga-pivot-y:60%;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:transparent;
+}
+.ga-layer{position:absolute;inset:0}
+.ga-bob{animation:ga-bob var(--ga-bob-sec) ease-in-out infinite alternate;will-change:transform}
+.ga-sway{animation:ga-sway var(--ga-tilt-sec) ease-in-out infinite alternate;transform-origin:var(--ga-pivot-x) var(--ga-pivot-y)}
+.ga-breathe{animation:ga-breathe var(--ga-breathe-sec) ease-in-out infinite alternate;transform-origin:50% 100%}
+.ga-react{transform-origin:50% 100%}
+
+.ga-frame{
+  position:absolute;inset:0;width:100%;height:100%;
+  object-fit:contain;object-position:50% 100%;
+  pointer-events:none;user-select:none;-webkit-user-select:none;-webkit-user-drag:none;
+}
+.ga-blink{opacity:0}
+.ga-root.ga-blinking .ga-blink{opacity:1}
+
+/* 停止中・画面外ではアニメーションを一時停止（位置はその場で止まる） */
+.ga-root.ga-paused .ga-bob,
+.ga-root.ga-paused .ga-sway,
+.ga-root.ga-paused .ga-breathe{animation-play-state:paused}
+
+@keyframes ga-bob{
+  from{transform:translateY(calc(var(--ga-bob-px) * .5))}
+  to{transform:translateY(calc(var(--ga-bob-px) * -.5))}
+}
+@keyframes ga-sway{
+  from{transform:rotate(calc(var(--ga-tilt-deg) * -1))}
+  to{transform:rotate(var(--ga-tilt-deg))}
+}
+@keyframes ga-breathe{
+  from{transform:scale(1,1)}
+  to{transform:scale(calc(2 - var(--ga-breathe)),var(--ga-breathe))}
+}
+
+/* 動きを減らす設定の端末では、上下動・傾きを止める（まばたきとタップ反応は控えめに残す） */
+@media (prefers-reduced-motion:reduce){
+  .ga-bob,.ga-sway,.ga-breathe{animation:none}
+}
