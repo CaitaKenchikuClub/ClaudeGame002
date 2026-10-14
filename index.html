@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>きゅうりの国の女神さま</title>
+<meta name="description" content="女神さまの魔法で住民の女の子をきゅうりに。育てて収穫して、大鍋でピクルスにして、しあわせメーターをためよう。">
+<meta name="theme-color" content="#f7d6ef">
+<link rel="icon" href="assets/goddess_face.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- 共有グラデーション定義 -->
+<svg class="defs" aria-hidden="true" width="0" height="0">
+  <defs>
+    <linearGradient id="g-cuke" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b6f09e"/><stop offset=".5" stop-color="#6fcf62"/><stop offset="1" stop-color="#3f9e47"/>
+    </linearGradient>
+    <linearGradient id="g-pickle" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d6d98a"/><stop offset=".5" stop-color="#9fae4f"/><stop offset="1" stop-color="#6f7f34"/>
+    </linearGradient>
+    <linearGradient id="g-pot" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#b9a3ea"/><stop offset=".45" stop-color="#e9dcff"/><stop offset="1" stop-color="#a48ce0"/>
+    </linearGradient>
+    <radialGradient id="g-brine" cx=".5" cy=".4" r=".6">
+      <stop offset="0" stop-color="#f3ffd8"/><stop offset="1" stop-color="#b7e39a"/>
+    </radialGradient>
+    <linearGradient id="g-soil" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e8c3a6"/><stop offset="1" stop-color="#c69476"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div id="app">
+  <header id="top">
+    <div class="meter-row">
+      <div class="meter-main">
+        <div class="meter-label"><span class="heart">♥</span> しあわせメーター <span id="title-name" class="title-name"></span></div>
+        <div class="meter-num" id="happy">0</div>
+      </div>
+      <button id="btn-fac" class="round-btn" aria-label="施設">🏰<span id="fac-badge" class="badge" hidden>!</span></button>
+      <button id="btn-menu" class="round-btn" aria-label="メニュー">⚙️</button>
+    </div>
+    <div class="bar"><div id="meter-fill" class="bar-fill"></div><div id="meter-text" class="bar-text"></div></div>
+  </header>
+
+  <section id="stage">
+    <div id="goddess-wrap">
+      <img id="goddess" src="assets/goddess.webp" alt="きゅうりの女神さま" draggable="false">
+      <div id="speech" class="speech">ようこそ、きゅうりの国へ♪</div>
+    </div>
+    <div id="crowd">
+      <div class="crowd-head">女神さまのそばの住民 <span id="queue-count">0/3</span></div>
+      <div id="queue"></div>
+      <button id="btn-magic" class="magic-btn">✨ まほうをかける ✨</button>
+    </div>
+  </section>
+
+  <nav id="tools">
+    <button class="tool active" data-tool="water">💧 みずやり</button>
+    <button class="tool" data-tool="fert">🌿 ひりょう</button>
+    <div class="tool-hint">なぞってもOK・育ったらタップで収穫</div>
+  </nav>
+
+  <main id="field"></main>
+
+  <footer id="bottom">
+    <div id="basket-box">
+      <div class="basket-head">🧺 かご <b id="basket-count">0</b>本</div>
+      <div id="basket-view"></div>
+      <div class="basket-btns">
+        <button id="btn-pot1" class="pill">おなべへ 1本</button>
+        <button id="btn-potall" class="pill alt">ぜんぶ</button>
+      </div>
+    </div>
+    <div id="pot-box">
+      <div id="pot" role="button" aria-label="大鍋（タップで1本入れる）"></div>
+      <div class="pot-info">🫙 ピクルス <b id="pickles">0</b>本　<span id="pot-count"></span></div>
+    </div>
+  </footer>
+</div>
+
+<!-- 施設・メニュー -->
+<div id="drawer" class="drawer" hidden>
+  <div class="drawer-panel">
+    <div class="drawer-head">
+      <div class="tabs">
+        <button class="tab active" data-tab="fac">🏰 施設</button>
+        <button class="tab" data-tab="stats">📖 きろく</button>
+        <button class="tab" data-tab="settings">⚙️ せってい</button>
+      </div>
+      <button id="drawer-close" class="round-btn small" aria-label="とじる">✕</button>
+    </div>
+    <div class="drawer-body">
+      <div class="tab-page" data-page="fac">
+        <p class="note">しあわせメーターの<b>累計</b>で施設をたてたりレベルアップできます。メーターは減りません♪<br>※住民に魔法をかけるのは、いつでも女神さまのお仕事です。</p>
+        <div id="fac-list"></div>
+      </div>
+      <div class="tab-page" data-page="stats" hidden><div id="stats"></div></div>
+      <div class="tab-page" data-page="settings" hidden>
+        <label class="setting"><input type="checkbox" id="opt-sound" checked> 効果音</label>
+        <label class="setting"><input type="checkbox" id="opt-anim" checked> 自動施設のエフェクトを表示</label>
+        <p class="note">データはこのブラウザに自動保存されます。とじている間も施設はゆっくり働きます（最大8時間ぶん）。</p>
+        <button id="btn-howto" class="pill">あそびかた</button>
+        <button id="btn-reset" class="pill danger">さいしょからやりなおす</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <img src="assets/goddess_face.webp" alt="" class="modal-face">
+    <div id="modal-body"></div>
+    <button id="modal-ok" class="magic-btn">はーい♪</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="fx"></div>
+
+<script src="game.js"></script>
+</body>
+</html>
