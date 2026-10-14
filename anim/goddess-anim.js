@@ -9,6 +9,7 @@
  *   const ga = new GoddessAnim.Animator(document.querySelector('#host'), { skin });
  *   ga.stop(); ga.start(); ga.blink(); ga.react(); await ga.setSkin(otherSkin); ga.destroy();
  *   host.addEventListener('goddess:tap', ...)   // タップされたとき
+ *   オプション: autostart(false で止めた状態で開始), reactOnTap(false でタップ時の自動反応なし), motion(動きの上書き)
  *
  * 軽さのための工夫:
  *   - 動きは CSS アニメーション（transform のみ）。毎フレームの JS 処理はありません
@@ -97,7 +98,7 @@
       this._onTap = e => {
         if (e.button != null && e.button !== 0) return;
         this.stats.taps++;
-        this.react();
+        if (this.opts.reactOnTap !== false) this.react();
         this.host.dispatchEvent(new CustomEvent('goddess:tap', { bubbles: true, detail: { x: e.clientX, y: e.clientY } }));
       };
       this.root.addEventListener('pointerdown', this._onTap);

@@ -98,7 +98,7 @@ function defaultState() {
     queue: [], spawnT: 3, basket: [], pot: [], pickles: 0,
     harvested: 0, cast: 0, potted: 0, crits: 0, best: 0, playTime: 0,
     fac: {}, acc: { cloud: 0, mush: 0, rabbit: 0, butterfly: 0 },
-    tool: 'water', sound: true, anim: true, lastSave: Date.now(), seen: false, recent: [],
+    tool: 'water', sound: true, anim: true, goddessAnim: true, lastSave: Date.now(), seen: false, recent: [],
   };
 }
 let S = defaultState();
@@ -333,6 +333,7 @@ function emptyPlots() { const r = []; S.plots.forEach((p, i) => { if (!p) r.push
 let casting = false;
 function castMagic() {
   if (casting) return;
+  if (goddessAnim) goddessAnim.react();
   if (!S.queue.length) { say('女神さまのそばに、まだ誰もいないみたい'); return; }
   const empties = emptyPlots();
   if (!empties.length) { say('畑がいっぱい！ 収穫してあげてね'); return; }
@@ -342,7 +343,6 @@ function castMagic() {
   const targets = empties.slice(0, n);
   const girls = S.queue.splice(0, n);
   const goddess = $('#goddess');
-  goddess.classList.remove('cast'); void goddess.offsetWidth; goddess.classList.add('cast');
   say(rand(['えいっ！ きゅうりになあれ♪', 'しあわせなきゅうりにな〜れ✨', 'くるくる〜っ、ぽんっ！', 'まほうのじかんですよ♪']));
   sound('magic');
   S.cast += n;
@@ -682,10 +682,35 @@ function renderStats() {
      <h3>⭐ きゅうりのランク</h3><div class="names">水と肥料がたっぷりの時間が長いほど★がふえます。★1 ×1／★2 ×1.6／★3 ×2.4／★4（三日月ランプ）×3.6</div>`;
 }
 
+/* ---------------- 女神さまアニメーション（anim/goddess-anim.js） ---------------- */
+// 画像素材は assets/skins/<スキン名>/ にあり、動きの処理とは分かれています。
+const GODDESS_SKIN = 'assets/skins/default/skin.json';
+let goddessAnim = null;
+async function initGoddess() {
+  const host = $('#goddess');
+  try {
+    if (!window.GoddessAnim) throw new Error('goddess-anim.js が読み込まれていません');
+    const skin = await GoddessAnim.loadSkin(GODDESS_SKIN);
+    // タップの反応は castMagic() 側で出すので、自動反応はオフ
+    goddessAnim = new GoddessAnim.Animator(host, { skin, reactOnTap: false, autostart: S.goddessAnim });
+    await goddessAnim.ready;
+    host.addEventListener('goddess:tap', () => castMagic());
+  } catch (e) {
+    // 読み込めないとき（file:// で開いた場合など）は、今までの一枚絵を表示
+    goddessAnim = null;
+    host.classList.add('fallback');
+    host.innerHTML = '<img src="assets/goddess.webp" alt="きゅうりの女神さま" draggable="false">';
+    host.addEventListener('click', () => castMagic());
+  }
+}
+function applyGoddessAnim() {
+  if (!goddessAnim) return;
+  if (S.goddessAnim) goddessAnim.start(); else goddessAnim.stop();
+}
+
 /* ---------------- 入力 ---------------- */
 function setupInput() {
   $('#btn-magic').addEventListener('click', castMagic);
-  $('#goddess').addEventListener('click', castMagic);
   $$('.tool').forEach(b => b.addEventListener('click', () => {
     S.tool = b.dataset.tool;
     $$('.tool').forEach(x => x.classList.toggle('active', x === b));
@@ -727,12 +752,13 @@ function setupInput() {
   $('#fac-list').addEventListener('click', e => { const b = e.target.closest('[data-build]'); if (b) buildFacility(b.dataset.build); });
   $('#opt-sound').addEventListener('change', e => { S.sound = e.target.checked; save(); });
   $('#opt-anim').addEventListener('change', e => { S.anim = e.target.checked; save(); });
+  $('#opt-goddess').addEventListener('change', e => { S.goddessAnim = e.target.checked; applyGoddessAnim(); save(); });
   $('#btn-howto').addEventListener('click', () => { closeDrawer(); showHowto(); });
   $('#btn-reset').addEventListener('click', () => {
     if (!confirm('ほんとうに さいしょから やりなおしますか？\n（しあわせメーターや施設がすべて消えます）')) return;
     try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* noop */ }
     S = defaultState(); S.seen = true;
-    closeDrawer(); initView(); save();
+    closeDrawer(); initView(); applyGoddessAnim(); save();
   });
   $('#modal-ok').addEventListener('click', () => { $('#modal').hidden = true; });
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
@@ -744,7 +770,7 @@ function openDrawer(tab) {
   $$('.tab-page').forEach(p => p.hidden = p.dataset.page !== tab);
   if (tab === 'fac') renderFacilities();
   if (tab === 'stats') renderStats();
-  $('#opt-sound').checked = S.sound; $('#opt-anim').checked = S.anim;
+  $('#opt-sound').checked = S.sound; $('#opt-anim').checked = S.anim; $('#opt-goddess').checked = S.goddessAnim;
 }
 function closeDrawer() { $('#drawer').hidden = true; }
 function modal(html, ok = 'はーい♪') {
@@ -800,6 +826,7 @@ function start() {
   const had = load();
   initView();
   setupInput();
+  initGoddess();
   if (!had || !S.seen) { S.seen = true; showHowto(); }
   else {
     const r = catchUp((Date.now() - S.lastSave) / 1000);

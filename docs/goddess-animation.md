@@ -1,8 +1,7 @@
 # 女神さま 透過処理と簡易アニメーション
 
 一枚絵のまま「Live2D風」に少しだけ動かすための素材と仕組みです。
-**ゲーム本体（index.html / style.css / game.js）とセーブデータには、まだ手を入れていません。**
-動作は独立した検証ページ `lab/goddess.html` で確認します。
+検証ページ `lab/goddess.html` での確認を経て、**ゲーム本体に組み込み済み**です（下の「本体への組み込み」）。
 
 ---
 
@@ -164,6 +163,14 @@ python tools/build_skin.py   assets/skins/default
 ```
 （`cutout_refine.py` は `base.png` のほか確認用のマスク画像も出力します）
 
-## つぎのステップ（未実施）
+## 本体への組み込み（実施済み）
 
-- 検証ページでの見た目・動きの確認後、上の「差し替えに必要な変更」に沿ってゲーム本体へ組み込み
+- `index.html`：`#goddess` を `<div>` に変更、`anim/goddess-anim.css` / `.js` を読み込み、`base.webp` を preload
+- `style.css`：旧 `float` / `castpose` アニメーションを削除。影（drop-shadow）は動かない `base` 画像だけにかけて、毎フレームの再描画を避ける
+- `game.js`
+  - `initGoddess()`：`assets/skins/default/skin.json` を読み込んでアニメ開始。読めないとき（file:// で開いた等）は旧 `goddess.webp` を表示して従来どおり動く
+  - 女神さまのタップ（`goddess:tap`）で `castMagic()`。魔法ボタン・タップのどちらでも女神さまがぴょんと反応（`react()`）
+  - ⚙️ せってい に「女神さまのアニメーション」オン／オフを追加
+- セーブデータ：`goddessAnim: true`（アニメのオン／オフ）を1項目追加。古いセーブは自動で `true` になり、ほかの項目は変わりません
+- スキンを変える場合は `game.js` の `GODDESS_SKIN` のパスを変えるだけ
+- 旧 `assets/goddess.webp` はフォールバックと検証ページの比較用に残しています

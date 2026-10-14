@@ -56,8 +56,10 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 /* ---------- stage ---------- */
 #stage{display:flex;gap:6px;align-items:stretch;height:clamp(150px,25vh,210px);flex:none}
 #goddess-wrap{position:relative;width:44%;flex:none}
-#goddess{position:absolute;left:50%;bottom:-4px;height:112%;transform:translateX(-50%);animation:float 3.2s ease-in-out infinite;cursor:pointer;filter:drop-shadow(0 6px 10px rgba(200,120,200,.35));pointer-events:auto}
-#goddess.cast{animation:castpose .6s ease}
+#goddess{position:absolute;left:50%;bottom:-2px;height:104%;aspect-ratio:387/450;transform:translateX(-50%);cursor:pointer}
+#goddess .ga-base{filter:drop-shadow(0 6px 8px rgba(200,120,200,.35))}
+#goddess.fallback{height:112%;aspect-ratio:376/480}
+#goddess.fallback img{width:100%;height:100%;object-fit:contain}
 .speech{position:absolute;left:0;right:0;bottom:2px;margin:auto;width:max-content;max-width:100%;background:#fff;border-radius:14px;padding:4px 10px;font-size:11.5px;font-weight:700;box-shadow:var(--shadow);border:2px solid var(--pink-soft);z-index:2;text-align:center;line-height:1.35}
 .speech::after{content:"";position:absolute;top:-8px;left:50%;margin-left:-6px;border:6px solid transparent;border-bottom-color:#fff;border-top:0}
 #crowd{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--card);border-radius:18px;padding:6px 8px 8px;box-shadow:var(--shadow);border:2px solid #fff}
@@ -181,8 +183,6 @@ button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
 .flygirl{position:absolute;width:34px;height:46px;margin:-23px 0 0 -17px}
 .flygirl svg{width:100%;height:100%}
 
-@keyframes float{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,-7px)}}
-@keyframes castpose{0%{transform:translate(-50%,0) scale(1)}40%{transform:translate(-50%,-10px) scale(1.06) rotate(-3deg)}100%{transform:translate(-50%,0) scale(1)}}
 @keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 @keyframes enter{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
 @keyframes shine{from{background-position:0 0}to{background-position:200% 0}}
